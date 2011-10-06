@@ -1033,9 +1033,6 @@ extern struct breakpoint *clone_momentary_breakpoint (struct breakpoint *bpkt);
 
 extern void set_ignore_count (int, int, int);
 
-extern void set_default_breakpoint (int, struct program_space *,
-				    CORE_ADDR, struct symtab *, int);
-
 extern void breakpoint_init_inferior (enum inf_context);
 
 extern struct cleanup *make_cleanup_delete_breakpoint (struct breakpoint *);

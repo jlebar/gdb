@@ -96,6 +96,12 @@ static void print_frame (struct frame_info *frame, int print_level,
 			 enum print_what print_what,  int print_args,
 			 struct symtab_and_line sal);
 
+static void set_last_displayed_codepoint (int valid,
+					  struct program_space *pspace,
+					  CORE_ADDR addr,
+					  struct symtab *symtab,
+					  int line);
+
 /* Zero means do things normally; we are interacting directly with the
    user.  One means print the full filename and linenumber when a
    frame is printed, and do so in a format emacs18/emacs19.22 can
@@ -103,6 +109,14 @@ static void print_frame (struct frame_info *frame, int print_level,
    cases and in a slightly different syntax.  */
 
 int annotation_level = 0;
+
+/* These variables hold the last codepoint we displayed to the user.  This is
+   where we insert a breakpoint or a skiplist entry by default. */
+static int last_codepoint_valid = 0;
+static struct program_space *last_codepoint_pspace = 0;
+static CORE_ADDR last_codepoint_addr = 0;
+static struct symtab *last_codepoint_symtab = 0;
+static int last_codepoint_line = 0;
 
 
 /* Return 1 if we should display the address in addition to the location,
@@ -872,15 +886,97 @@ print_frame_info (struct frame_info *frame, int print_level,
       CORE_ADDR pc;
 
       if (get_frame_pc_if_available (frame, &pc))
-	set_default_breakpoint (1, sal.pspace, pc, sal.symtab, sal.line);
+	set_last_displayed_codepoint (1, sal.pspace, pc, sal.symtab, sal.line);
       else
-	set_default_breakpoint (0, 0, 0, 0, 0);
+	set_last_displayed_codepoint (0, 0, 0, 0, 0);
     }
 
   annotate_frame_end ();
 
   gdb_flush (gdb_stdout);
 }
+
+/* Remember the last codepoint we displayed, which we use e.g. as the place to
+   put a breakpoint when the `break' command is invoked with no arguments. */
+static void
+set_last_displayed_codepoint (int valid, struct program_space *pspace,
+			      CORE_ADDR addr, struct symtab *symtab,
+			      int line)
+{
+  last_codepoint_valid = valid;
+  last_codepoint_pspace = pspace;
+  last_codepoint_addr = addr;
+  last_codepoint_symtab = symtab;
+  last_codepoint_line = line;
+}
+
+void
+clear_last_displayed_codepoint ()
+{
+  last_codepoint_valid = 0;
+  last_codepoint_pspace = 0;
+  last_codepoint_addr = 0;
+  last_codepoint_symtab = 0;
+  last_codepoint_line = 0;
+}
+
+int
+last_displayed_codepoint_is_valid ()
+{
+  return last_codepoint_valid;
+}
+
+struct program_space*
+get_last_displayed_pspace ()
+{
+  if (last_codepoint_valid)
+    return last_codepoint_pspace;
+  return 0;
+}
+
+CORE_ADDR
+get_last_displayed_addr ()
+{
+  if (last_codepoint_valid)
+    return last_codepoint_addr;
+  return 0;
+}
+
+struct symtab*
+get_last_displayed_symtab ()
+{
+  if (last_codepoint_valid)
+    return last_codepoint_symtab;
+  return 0;
+}
+
+int
+get_last_displayed_line ()
+{
+  if (last_codepoint_valid)
+    return last_codepoint_line;
+  return 0;
+}
+
+void
+set_sal_to_last_displayed_codepoint (struct symtab_and_line *sal)
+{
+  if (last_codepoint_valid)
+    {
+      sal->pspace = last_codepoint_pspace;
+      sal->pc = last_codepoint_addr;
+      sal->symtab = last_codepoint_symtab;
+      sal->line = last_codepoint_line;
+    }
+  else
+    {
+      sal->pspace = 0;
+      sal->pc = 0;
+      sal->symtab = 0;
+      sal->line = 0;
+    }
+}
+
 
 /* Attempt to obtain the FUNNAME, FUNLANG and optionally FUNCP of the function
    corresponding to FRAME.  */

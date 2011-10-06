@@ -1,3 +1,13 @@
+2011-10-06  Justin Lebar <justin.lebar@gmail.com>
+
+	testsuite/gdb.base/skip-solib-lib.c: New
+	testsuite/gdb.base/skip-solib-main.c: New
+	testsuite/gdb.base/skip-solib.exp: New
+	testsuite/gdb.base/skip.c: New
+	testsuite/gdb.base/skip.exp: New
+	testsuite/gdb.base/skip1.c: New
+	testsuite/gdb.base/Makefile.in: Adding new files.
+
 2011-10-29  Yao Qi  <yao@codesourcery.com>
 
 	* infcmd.c (disconnect_command): Call disconnect_tracing.
@@ -5745,6 +5755,7 @@
 	(symbol_file_add): Pass NULL to the new parameter parent.
 	* symfile.h (symbol_file_add_from_bfd): New parameter parent.
 
+<<<<<<< HEAD
 2011-04-17  Jan Kratochvil  <jan.kratochvil@redhat.com>
 
 	* elfread.c (elf_symtab_read): Do not ignore .L symbols if they are
