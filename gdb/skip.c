@@ -50,7 +50,7 @@ struct skiplist_entry
      entry will be on a function, pending a shared library load. */
   CORE_ADDR pc;
 
-  /* Architecture we used to create the skiplist entry. May be null 
+  /* Architecture we used to create the skiplist entry. May be null
      if the entry is pending a shared library load. */
   struct gdbarch *gdbarch;
 
@@ -488,7 +488,7 @@ skip_re_set ()
 	      sals = decode_line_1 (&func_name, 1, 0, 0, 0);
 	    }
 
-	  if (decode_exception.reason >= 0 && 
+	  if (decode_exception.reason >= 0 &&
 	      sals.nelts == 1 && strlen (func_name) == 0)
 	    {
 	      struct symtab_and_line *sal = &sals.sals[0];

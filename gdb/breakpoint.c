@@ -12421,7 +12421,7 @@ invalidate_bp_value_on_memory_change (CORE_ADDR addr, int len,
       }
 }
 
-/* Use the last displayed codepoint's values, or nothing 
+/* Use the last displayed codepoint's values, or nothing
    if they aren't valid. */
 
 struct symtabs_and_lines
