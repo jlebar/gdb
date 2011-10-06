@@ -1,5 +1,6 @@
-/* Header for GDB line completion.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+/* Skipping over uninteresting files and functions when debugging.
+
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -231,9 +232,9 @@ skip_info (char *arg, int from_tty)
   if (num_printable_entries == 0)
     {
       if (entry_num == -1)
-	ui_out_message (uiout, 0, _("Not ignoring any files or functions.\n"));
+	ui_out_message (current_uiout, 0, _("Not ignoring any files or functions.\n"));
       else
-	ui_out_message (uiout, 0,
+	ui_out_message (current_uiout, 0,
 			_("No skiplist entry numbered %d.\n"), entry_num);
 
       return;
@@ -241,23 +242,23 @@ skip_info (char *arg, int from_tty)
 
   if (opts.addressprint)
     tbl_chain
-       = make_cleanup_ui_out_table_begin_end (uiout, 5, num_printable_entries,
+       = make_cleanup_ui_out_table_begin_end (current_uiout, 5, num_printable_entries,
 					      "SkiplistTable");
   else
     tbl_chain
-       = make_cleanup_ui_out_table_begin_end (uiout, 4, num_printable_entries,
+       = make_cleanup_ui_out_table_begin_end (current_uiout, 4, num_printable_entries,
 					      "SkiplistTable");
 
-  ui_out_table_header (uiout, 7, ui_left, "number", "Num");              /* 1 */
-  ui_out_table_header (uiout, 14, ui_left, "type", "Type");              /* 2 */
-  ui_out_table_header (uiout, 3, ui_left, "enabled", "Enb");             /* 3 */
+  ui_out_table_header (current_uiout, 7, ui_left, "number", "Num");              /* 1 */
+  ui_out_table_header (current_uiout, 14, ui_left, "type", "Type");              /* 2 */
+  ui_out_table_header (current_uiout, 3, ui_left, "enabled", "Enb");             /* 3 */
   if (opts.addressprint)
     {
-      ui_out_table_header (uiout, address_width, ui_left,
+      ui_out_table_header (current_uiout, address_width, ui_left,
 			   "addr", "Address");                           /* 4 */
     }
-  ui_out_table_header (uiout, 40, ui_noalign, "what", "What");           /* 5 */
-  ui_out_table_body (uiout);
+  ui_out_table_header (current_uiout, 40, ui_noalign, "what", "What");           /* 5 */
+  ui_out_table_body (current_uiout);
 
   ALL_SKIPLIST_ENTRIES (e)
     {
@@ -267,28 +268,28 @@ skip_info (char *arg, int from_tty)
       if (entry_num != -1 && entry_num != e->number)
 	continue;
 
-      entry_chain = make_cleanup_ui_out_tuple_begin_end (uiout, "blklst-entry");
-      ui_out_field_int (uiout, "number", e->number);                     /* 1 */
+      entry_chain = make_cleanup_ui_out_tuple_begin_end (current_uiout, "blklst-entry");
+      ui_out_field_int (current_uiout, "number", e->number);                     /* 1 */
 
       if (e->function_name != 0)
-	ui_out_field_string (uiout, "type", "function");                 /* 2 */
+	ui_out_field_string (current_uiout, "type", "function");                 /* 2 */
       else if (e->filename != 0)
-	ui_out_field_string (uiout, "type", "file");                     /* 2 */
+	ui_out_field_string (current_uiout, "type", "file");                     /* 2 */
       else
 	internal_error (__FILE__, __LINE__, _("\
 Skiplist entry should have either a filename or a function name."));
 
       if (e->enabled)
-	ui_out_field_string (uiout, "enabled", "y");                     /* 3 */
+	ui_out_field_string (current_uiout, "enabled", "y");                     /* 3 */
       else
-	ui_out_field_string (uiout, "enabled", "n");                     /* 3 */
+	ui_out_field_string (current_uiout, "enabled", "n");                     /* 3 */
 
       if (opts.addressprint)
 	{
 	  if (e->pc != 0)
-	    ui_out_field_core_addr (uiout, "addr", e->gdbarch, e->pc);   /* 4 */
+	    ui_out_field_core_addr (current_uiout, "addr", e->gdbarch, e->pc);   /* 4 */
 	  else
-	    ui_out_field_string (uiout, "addr", "");                     /* 4 */
+	    ui_out_field_string (current_uiout, "addr", "");                     /* 4 */
 	}
 
       if (!e->pending && e->function_name != 0)
@@ -297,25 +298,25 @@ Skiplist entry should have either a filename or a function name."));
 	   gdb_assert (e->pc != 0);
 	   sym = find_pc_function (e->pc);
 	   if (sym)
-	     ui_out_field_fmt (uiout, "what", "%s at %s:%d",
+	     ui_out_field_fmt (current_uiout, "what", "%s at %s:%d",
 			       sym->ginfo.name,
 			       sym->symtab->filename,
 			       sym->line);
 	   else
-	     ui_out_field_string (uiout, "what", "?");
+	     ui_out_field_string (current_uiout, "what", "?");
 	}
       else if (e->pending && e->function_name != 0)
 	{
-	  ui_out_field_fmt (uiout, "what", "%s (PENDING)",
+	  ui_out_field_fmt (current_uiout, "what", "%s (PENDING)",
 			    e->function_name);
 	}
       else if (!e->pending && e->filename != 0)
-	ui_out_field_string (uiout, "what", e->filename);
+	ui_out_field_string (current_uiout, "what", e->filename);
       else if (e->pending && e->filename != 0)
-	ui_out_field_fmt (uiout, "what", "%s (PENDING)",
+	ui_out_field_fmt (current_uiout, "what", "%s (PENDING)",
 			  e->filename);
 
-      ui_out_text (uiout, "\n");
+      ui_out_text (current_uiout, "\n");
       do_cleanups (entry_chain);
     }
 

@@ -1,5 +1,6 @@
-/* Header for GDB line completion.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+/* Header for skipping over uninteresting files and functions when debugging.
+
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

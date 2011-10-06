@@ -1,4 +1,4 @@
-#   Copyright 2010 Free Software Foundation, Inc.
+#   Copyright 2011 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,12 +62,6 @@ gdb_test "skip delete" "Argument required \\(expression to compute\\)."
 gdb_test "skip enable a" "No symbol \"a\" in current context."
 gdb_test "skip disable a" "No symbol \"a\" in current context."
 gdb_test "skip delete a" "No symbol \"a\" in current context."
-
-#
-# Test that skip function doesn't allow extra characters at the end of
-# its arguments list.
-#
-gdb_test "skip function foo bar" "Junk at end of arguments."
 
 #
 # Ask for info on a skiplist entry which doesn't exist.
