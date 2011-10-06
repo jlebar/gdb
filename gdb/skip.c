@@ -134,7 +134,7 @@ skip_function_command (char *arg, int from_tty)
   if (arg == 0)
     {
       CORE_ADDR pc;
-      if (!last_displayed_codepoint_is_valid ())
+      if (!last_displayed_symtab_and_line_is_valid ())
 	error (_("No default function now."));
 
       pc = get_last_displayed_addr ();

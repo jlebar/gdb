@@ -911,7 +911,7 @@ set_last_displayed_codepoint (int valid, struct program_space *pspace,
 }
 
 void
-clear_last_displayed_codepoint ()
+clear_last_displayed_symtab_and_line ()
 {
   last_codepoint_valid = 0;
   last_codepoint_pspace = 0;
@@ -921,7 +921,7 @@ clear_last_displayed_codepoint ()
 }
 
 int
-last_displayed_codepoint_is_valid ()
+last_displayed_symtab_and_line_is_valid ()
 {
   return last_codepoint_valid;
 }
@@ -959,7 +959,7 @@ get_last_displayed_line ()
 }
 
 void
-set_sal_to_last_displayed_codepoint (struct symtab_and_line *sal)
+get_last_displayed_symtab_and_line (struct symtab_and_line *sal)
 {
   if (last_codepoint_valid)
     {

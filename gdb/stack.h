@@ -38,14 +38,14 @@ void iterate_over_block_local_vars (struct block *block,
 				    iterate_over_block_arg_local_vars_cb cb,
 				    void *cb_data);
 
-/* Get or set the last displayed codepoint, which is, e.g. where we set a
-   breakpoint when `break' is supplied with no arguments. */
-void clear_last_displayed_codepoint ();
-int last_displayed_codepoint_is_valid ();
+/* Get or set the last displayed symtab and line, which is, e.g. where we set a
+ * breakpoint when `break' is supplied with no arguments. */
+void clear_last_displayed_symtab_and_line ();
+int last_displayed_symtab_and_line_is_valid ();
 struct program_space* get_last_displayed_pspace ();
 CORE_ADDR get_last_displayed_addr ();
 struct symtab* get_last_displayed_symtab ();
 int get_last_displayed_line ();
-void set_sal_to_last_displayed_codepoint (struct symtab_and_line *sal);
+void get_last_displayed_symtab_and_line (struct symtab_and_line *sal);
 
 #endif /* #ifndef STACK_H */

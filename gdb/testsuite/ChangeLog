@@ -25,15 +25,15 @@
 	(set_last_displayed_codepoint): New static function.
 	(print_frame_info): Switched call to set_default_breakpoint to call to
 	set_last_displayed_codepoint.
-	(clear_last_displayed_codepoint,
-	last_displayed_codepoint_is_valid, get_last_displayed_pspace,
+	(clear_last_displayed_symtab_and_line,
+	last_displayed_symtab_and_line_is_valid, get_last_displayed_pspace,
 	get_last_displayed_addr, get_last_displayed_symtab,
-	get_last_displayed_line, set_sal_to_last_displayed_codepoint): New
+	get_last_displayed_line, get_last_displayed_symtab_and_line): New
 	public functions.
-	* stack.h (clear_last_displayed_codepoint,
-	last_displayed_codepoint_is_valid, get_last_displayed_pspace,
+	* stack.h (clear_last_displayed_symtab_and_line,
+	last_displayed_symtab_and_line_is_valid, get_last_displayed_pspace,
 	get_last_displayed_addr, get_last_displayed_symtab,
-	get_last_displayed_line, set_sal_to_last_displayed_codepoint): Added
+	get_last_displayed_line, get_last_displayed_symtab_and_line): Added
 
 2011-10-31  Yao Qi  <yao@codesourcery.com>
 	    Pedro Alves  <pedro@codesourcery.com>
