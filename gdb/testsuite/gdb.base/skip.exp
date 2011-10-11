@@ -36,7 +36,7 @@ if ![runto_main] { fail "skip tests suppressed" }
 #
 # Test |info skip| with an empty skiplist.
 #
-gdb_test "info skip" "Not ignoring any files or functions\." "info skip empty"
+gdb_test "info skip" "Not skipping any files or functions\." "info skip empty"
 
 #
 # Create a skiplist entry for the current file and function.
@@ -56,9 +56,6 @@ gdb_test "skip function baz" "Function baz at .* will be skipped when stepping\.
 gdb_test "skip enable 999" "No skiplist entry numbered 999."
 gdb_test "skip disable 999" "No skiplist entry numbered 999."
 gdb_test "skip delete 999" "No skiplist entry numbered 999."
-gdb_test "skip enable" "Argument required \\(expression to compute\\)."
-gdb_test "skip disable" "Argument required \\(expression to compute\\)."
-gdb_test "skip delete" "Argument required \\(expression to compute\\)."
 gdb_test "skip enable a" "No symbol \"a\" in current context."
 gdb_test "skip disable a" "No symbol \"a\" in current context."
 gdb_test "skip delete a" "No symbol \"a\" in current context."
@@ -133,3 +130,22 @@ gdb_test "step" "foo \\(\\) at.*" "step after deleting 1 (1)"
 send_gdb "step\n"; # Return from foo()
 gdb_test "step" "main \\(\\) at.*" "step after deleting 1 (2)"
 
+send_gdb "skip disable\n"
+gdb_test "info skip" \
+"Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
+2\\s+function\\s+n\\s+0x\[0-9a-f\]+ main at .*$srcfile:\[0-9\]+\\s*
+3\\s+file\\s+n\\s+.*$srcfile1\\s*
+4\\s+function\\s+n\\s+0x\[0-9a-f\]+ baz at .*$srcfile1:\[0-9\]+\\s*" \
+"info skip after disabling all"
+
+send_gdb "skip enable\n"
+gdb_test "info skip" \
+"Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
+2\\s+function\\s+y\\s+0x\[0-9a-f\]+ main at .*$srcfile:\[0-9\]+\\s*
+3\\s+file\\s+y\\s+.*$srcfile1\\s*
+4\\s+function\\s+y\\s+0x\[0-9a-f\]+ baz at .*$srcfile1:\[0-9\]+\\s*" \
+"info skip after enabling all"
+
+send_gdb "skip delete\n"
+gdb_test "info skip" "Not skipping any files or functions\." \
+"info skip after deleting all"

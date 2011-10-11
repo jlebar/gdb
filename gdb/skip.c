@@ -77,6 +77,11 @@ static int skiplist_entry_count;
 #define ALL_SKIPLIST_ENTRIES(E) \
   for (E = skiplist_entry_chain; E; E = E->next)
 
+#define ALL_SKIPLIST_ENTRIES_SAFE(E,TMP) \
+  for (E = skiplist_entry_chain;         \
+       E ? (TMP = E->next, 1) : 0;       \
+       E = TMP)
+
 static void
 skip_file_command (char *arg, int from_tty)
 {
@@ -232,7 +237,7 @@ skip_info (char *arg, int from_tty)
   if (num_printable_entries == 0)
     {
       if (entry_num == -1)
-	ui_out_message (current_uiout, 0, _("Not ignoring any files or functions.\n"));
+	ui_out_message (current_uiout, 0, _("Not skipping any files or functions.\n"));
       else
 	ui_out_message (current_uiout, 0,
 			_("No skiplist entry numbered %d.\n"), entry_num);
@@ -327,12 +332,20 @@ static void
 skip_enable_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
-  int entry_num = parse_and_eval_long (arg);
+  int entry_num;
+  if (arg == 0)
+    {
+      ALL_SKIPLIST_ENTRIES (e)
+        e->enabled = 1;
+      return;
+    }
+
+  entry_num = parse_and_eval_long (arg);
   ALL_SKIPLIST_ENTRIES (e)
     if (e->number == entry_num)
       {
-	e->enabled = 1;
-	return;
+        e->enabled = 1;
+        return;
       }
 
   error (_("No skiplist entry numbered %d."), entry_num);
@@ -342,7 +355,15 @@ static void
 skip_disable_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
-  int entry_num = parse_and_eval_long (arg);
+  int entry_num;
+  if (arg == 0)
+    {
+      ALL_SKIPLIST_ENTRIES (e)
+        e->enabled = 0;
+      return;
+    }
+
+  entry_num = parse_and_eval_long (arg);
   ALL_SKIPLIST_ENTRIES (e)
     if (e->number == entry_num)
       {
@@ -356,11 +377,24 @@ skip_disable_command (char *arg, int from_tty)
 static void
 skip_delete_command (char *arg, int from_tty)
 {
-  struct skiplist_entry *e, *b_prev;
-  int entry_num = parse_and_eval_long (arg);
+  struct skiplist_entry *e, *temp, *b_prev;
+  int entry_num;
+
+  if (arg == 0)
+    {
+      ALL_SKIPLIST_ENTRIES_SAFE(e, temp)
+        {
+          xfree (e->function_name);
+          xfree (e->filename);
+          xfree (e);
+        }
+      skiplist_entry_chain = 0;
+      return;
+    }
 
   /* We don't need to use a SAFE macro here since we return as soon as we
      remove an element from the list. */
+  entry_num = parse_and_eval_long (arg);
   b_prev = 0;
   ALL_SKIPLIST_ENTRIES (e)
     if (e->number == entry_num)
@@ -495,11 +529,12 @@ skip_re_set ()
 	      CORE_ADDR pc = sal->pc;
 	      CORE_ADDR func_start = 0;
 	      struct gdbarch *arch = get_sal_arch (sal);
+              char *func_name;
 
-	      if (find_pc_partial_function (pc, &e->function_name,
-		                            &func_start, 0))
+	      if (find_pc_partial_function (pc, &func_name, &func_start, 0))
 		{
 		  e->pending = 0;
+                  e->function_name = xstrdup(func_name);
 		  e->pc = func_start;
 		  e->gdbarch = arch;
 		}
