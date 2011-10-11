@@ -2840,7 +2840,7 @@ clear_symtab_users (int add_flags)
   clear_displays ();
   if ((add_flags & SYMFILE_DEFER_BP_RESET) == 0)
     breakpoint_re_set ();
-  clear_last_displayed_symtab_and_line ();
+  clear_last_displayed_sal ();
   clear_pc_function_cache ();
   observer_notify_new_objfile (NULL);
 

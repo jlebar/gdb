@@ -40,12 +40,12 @@ void iterate_over_block_local_vars (struct block *block,
 
 /* Get or set the last displayed symtab and line, which is, e.g. where we set a
  * breakpoint when `break' is supplied with no arguments. */
-void clear_last_displayed_symtab_and_line ();
-int last_displayed_symtab_and_line_is_valid ();
+void clear_last_displayed_sal ();
+int last_displayed_sal_is_valid ();
 struct program_space* get_last_displayed_pspace ();
 CORE_ADDR get_last_displayed_addr ();
 struct symtab* get_last_displayed_symtab ();
 int get_last_displayed_line ();
-void get_last_displayed_symtab_and_line (struct symtab_and_line *sal);
+void get_last_displayed_sal (struct symtab_and_line *sal);
 
 #endif /* #ifndef STACK_H */

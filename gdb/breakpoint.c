@@ -7520,7 +7520,7 @@ parse_breakpoint_sals (char **address,
     {
       /* The last displayed codepoint, if it's valid, is our default breakpoint
          address. */
-      if (last_displayed_symtab_and_line_is_valid ())
+      if (last_displayed_sal_is_valid ())
 	{
 	  struct symtab_and_line sal;
 
@@ -7530,7 +7530,7 @@ parse_breakpoint_sals (char **address,
 
 	  /* Set sal's pspace, pc, symtab, and line to the values
 	     corresponding to the last call to print_frame_info. */
-	  get_last_displayed_symtab_and_line (&sal);
+	  get_last_displayed_sal (&sal);
           sal.section = find_pc_overlay (sal.pc);
 
 	  /* "break" without arguments is equivalent to "break *PC"
@@ -7559,7 +7559,7 @@ parse_breakpoint_sals (char **address,
 	 
       struct symtab_and_line cursal = get_current_source_symtab_and_line ();
 			
-      if (last_displayed_symtab_and_line_is_valid ()
+      if (last_displayed_sal_is_valid ()
 	  && (!cursal.symtab
  	      || ((strchr ("+-", (*address)[0]) != NULL)
  		  && ((*address)[1] != '['))))
@@ -9591,7 +9591,7 @@ until_break_command (char *arg, int from_tty, int anywhere)
   /* Set a breakpoint where the user wants it and at return from
      this function.  */
 
-  if (last_displayed_symtab_and_line_is_valid ())
+  if (last_displayed_sal_is_valid ())
     sals = decode_line_1 (&arg, 1,
 			  get_last_displayed_symtab (),
 			  get_last_displayed_line (),
@@ -10121,7 +10121,7 @@ clear_command (char *arg, int from_tty)
       /* Set sal's line, symtab, pc, and pspace to the values
 	 corresponding to the last call to print_frame_info.  If the
 	 codepoint is not valid, this will set all the fields to 0. */
-      get_last_displayed_symtab_and_line (&sal);
+      get_last_displayed_sal (&sal);
       if (sal.symtab == 0)
 	error (_("No source file specified."));
 
@@ -12431,7 +12431,7 @@ decode_line_spec_1 (char *string, int funfirstline)
 
   if (string == 0)
     error (_("Empty line specification."));
-  if (last_displayed_symtab_and_line_is_valid ())
+  if (last_displayed_sal_is_valid ())
     sals = decode_line_1 (&string, funfirstline,
 			  get_last_displayed_symtab (),
 			  get_last_displayed_line (),
