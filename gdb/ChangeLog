@@ -5781,7 +5781,6 @@
 	(symbol_file_add): Pass NULL to the new parameter parent.
 	* symfile.h (symbol_file_add_from_bfd): New parameter parent.
 
-<<<<<<< HEAD
 2011-04-17  Jan Kratochvil  <jan.kratochvil@redhat.com>
 
 	* elfread.c (elf_symtab_read): Do not ignore .L symbols if they are
