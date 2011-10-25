@@ -1,4 +1,4 @@
-/* Skipping over uninteresting files and functions when debugging.
+/* Skipping uninteresting files and functions while stepping.
 
    Copyright (C) 2011 Free Software Foundation, Inc.
 
@@ -30,28 +30,29 @@
 #include "linespec.h"
 #include "objfiles.h"
 #include "exceptions.h"
+#include "breakpoint.h" /* for get_sal_arch() */
 
 struct skiplist_entry
 {
   int number;
 
-  /* null if this isn't a skiplist entry for an entire file.
-     The skiplist entry owns this pointer. */
+  /* NULL if this isn't a skiplist entry for an entire file.
+     The skiplist entry owns this pointer.  */
   char *filename;
 
   /* The name of the marked-for-skip function, if this is a skiplist
      entry for a function.  Note that this might be non-null even if
      the pc is 0 if the entry is pending a shared library load.
 
-     The skiplist entry owns this pointer. */
+     The skiplist entry owns this pointer.  */
   char *function_name;
 
   /* 0 if this is a skiplist entry for an entire file, or if this
-     entry will be on a function, pending a shared library load. */
+     entry will be on a function, pending a shared library load.  */
   CORE_ADDR pc;
 
   /* Architecture we used to create the skiplist entry. May be null
-     if the entry is pending a shared library load. */
+     if the entry is pending a shared library load.  */
   struct gdbarch *gdbarch;
 
   int enabled;
@@ -68,8 +69,6 @@ static void add_skiplist_entry (struct skiplist_entry *e);
 static void skip_function_pc (CORE_ADDR pc, char *name,
 			      struct gdbarch *arch,
 			      int pending);
-//static void try_resolve_pending_entry (struct skiplist_entry *e);
-static struct gdbarch *get_sal_arch (struct symtab_and_line *sal);
 
 static struct skiplist_entry *skiplist_entry_chain;
 static int skiplist_entry_count;
@@ -162,7 +161,7 @@ skip_function_command (char *arg, int from_tty)
       volatile struct gdb_exception decode_exception;
       struct symtabs_and_lines sals;
 
-      TRY_CATCH(decode_exception, NOT_FOUND_ERROR)
+      TRY_CATCH (decode_exception, NOT_FOUND_ERROR)
 	{
 	  sals = decode_line_1 (&arg, 1, 0, 0, 0);
 	}
@@ -191,8 +190,8 @@ Ignore function pending future shared library load? ")))
 	 but we actually want the line before that.  The call to
 	 find_pc_partial_function gets us the value we actually want. */
       {
-	struct symtab_and_line *sal = &sals.sals[0];
-	CORE_ADDR pc = sal->pc;
+	struct symtab_and_line sal = sals.sals[0];
+	CORE_ADDR pc = sal.pc;
 	CORE_ADDR func_start = 0;
 	struct gdbarch *arch = get_sal_arch (sal);
 
@@ -237,7 +236,8 @@ skip_info (char *arg, int from_tty)
   if (num_printable_entries == 0)
     {
       if (entry_num == -1)
-	ui_out_message (current_uiout, 0, _("Not skipping any files or functions.\n"));
+	ui_out_message (current_uiout, 0, _("\
+Not skipping any files or functions.\n"));
       else
 	ui_out_message (current_uiout, 0,
 			_("No skiplist entry numbered %d.\n"), entry_num);
@@ -246,23 +246,24 @@ skip_info (char *arg, int from_tty)
     }
 
   if (opts.addressprint)
-    tbl_chain
-       = make_cleanup_ui_out_table_begin_end (current_uiout, 5, num_printable_entries,
-					      "SkiplistTable");
+    tbl_chain = make_cleanup_ui_out_table_begin_end (current_uiout, 5,
+						     num_printable_entries,
+						     "SkiplistTable");
   else
     tbl_chain
-       = make_cleanup_ui_out_table_begin_end (current_uiout, 4, num_printable_entries,
+       = make_cleanup_ui_out_table_begin_end (current_uiout, 4,
+					      num_printable_entries,
 					      "SkiplistTable");
 
-  ui_out_table_header (current_uiout, 7, ui_left, "number", "Num");              /* 1 */
-  ui_out_table_header (current_uiout, 14, ui_left, "type", "Type");              /* 2 */
-  ui_out_table_header (current_uiout, 3, ui_left, "enabled", "Enb");             /* 3 */
+  ui_out_table_header (current_uiout, 7, ui_left, "number", "Num");      /* 1 */
+  ui_out_table_header (current_uiout, 14, ui_left, "type", "Type");      /* 2 */
+  ui_out_table_header (current_uiout, 3, ui_left, "enabled", "Enb");     /* 3 */
   if (opts.addressprint)
     {
       ui_out_table_header (current_uiout, address_width, ui_left,
 			   "addr", "Address");                           /* 4 */
     }
-  ui_out_table_header (current_uiout, 40, ui_noalign, "what", "What");           /* 5 */
+  ui_out_table_header (current_uiout, 40, ui_noalign, "what", "What");   /* 5 */
   ui_out_table_body (current_uiout);
 
   ALL_SKIPLIST_ENTRIES (e)
@@ -273,33 +274,36 @@ skip_info (char *arg, int from_tty)
       if (entry_num != -1 && entry_num != e->number)
 	continue;
 
-      entry_chain = make_cleanup_ui_out_tuple_begin_end (current_uiout, "blklst-entry");
-      ui_out_field_int (current_uiout, "number", e->number);                     /* 1 */
+      entry_chain = make_cleanup_ui_out_tuple_begin_end (current_uiout,
+							 "blklst-entry");
+      ui_out_field_int (current_uiout, "number", e->number);             /* 1 */
 
       if (e->function_name != 0)
-	ui_out_field_string (current_uiout, "type", "function");                 /* 2 */
+	ui_out_field_string (current_uiout, "type", "function");         /* 2 */
       else if (e->filename != 0)
-	ui_out_field_string (current_uiout, "type", "file");                     /* 2 */
+	ui_out_field_string (current_uiout, "type", "file");             /* 2 */
       else
 	internal_error (__FILE__, __LINE__, _("\
 Skiplist entry should have either a filename or a function name."));
 
       if (e->enabled)
-	ui_out_field_string (current_uiout, "enabled", "y");                     /* 3 */
+	ui_out_field_string (current_uiout, "enabled", "y");             /* 3 */
       else
-	ui_out_field_string (current_uiout, "enabled", "n");                     /* 3 */
+	ui_out_field_string (current_uiout, "enabled", "n");             /* 3 */
 
       if (opts.addressprint)
 	{
 	  if (e->pc != 0)
-	    ui_out_field_core_addr (current_uiout, "addr", e->gdbarch, e->pc);   /* 4 */
+	    ui_out_field_core_addr (current_uiout, "addr",
+				    e->gdbarch, e->pc);                  /* 4 */
 	  else
-	    ui_out_field_string (current_uiout, "addr", "");                     /* 4 */
+	    ui_out_field_string (current_uiout, "addr", "");             /* 4 */
 	}
 
       if (!e->pending && e->function_name != 0)
 	{
 	   struct symbol *sym;
+
 	   gdb_assert (e->pc != 0);
 	   sym = find_pc_function (e->pc);
 	   if (sym)
@@ -333,6 +337,7 @@ skip_enable_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
   int entry_num;
+
   if (arg == 0)
     {
       ALL_SKIPLIST_ENTRIES (e)
@@ -356,6 +361,7 @@ skip_disable_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
   int entry_num;
+
   if (arg == 0)
     {
       ALL_SKIPLIST_ENTRIES (e)
@@ -382,7 +388,7 @@ skip_delete_command (char *arg, int from_tty)
 
   if (arg == 0)
     {
-      ALL_SKIPLIST_ENTRIES_SAFE(e, temp)
+      ALL_SKIPLIST_ENTRIES_SAFE (e, temp)
         {
           xfree (e->function_name);
           xfree (e->filename);
@@ -424,6 +430,7 @@ skip_function_pc (CORE_ADDR pc, char *name, struct gdbarch *arch,
 		  int pending)
 {
   struct skiplist_entry *e = XZALLOC (struct skiplist_entry);
+
   e->pc = pc;
   e->gdbarch = arch;
   e->enabled = 1;
@@ -467,8 +474,9 @@ add_skiplist_entry (struct skiplist_entry *e)
 int
 function_pc_is_marked_for_skip (CORE_ADDR pc)
 {
+  int searched_for_sal = 0;
   struct symtab_and_line sal;
-  char *filename;
+  char *filename = NULL;
   struct skiplist_entry *e;
 
   sal = find_pc_line (pc, 0);
@@ -476,11 +484,26 @@ function_pc_is_marked_for_skip (CORE_ADDR pc)
 
   ALL_SKIPLIST_ENTRIES (e)
     {
-      int pc_match = e->pc != 0 && pc == e->pc;
-      int filename_match = e->filename != 0 && filename != 0 &&
-			   strcmp (filename, e->filename) == 0;
-      if (e->enabled && !e->pending && (pc_match || filename_match))
+      if (!e->enabled || e->pending)
+	continue;
+
+      /* Does the pc we're stepping into match e's stored pc? */
+      if (e->pc != 0 && pc == e->pc)
 	return 1;
+
+      if (e->filename != 0)
+	{
+	  /* Get the filename corresponding to this pc, if we haven't
+	   * yet. */
+	  if (!searched_for_sal)
+	    {
+	      sal = find_pc_line (pc, 0);
+	      filename = sal.symtab->filename;
+	      searched_for_sal = 1;
+	    }
+	  if (filename != 0 && strcmp (filename, e->filename) == 0)
+	    return 1;
+	}
     }
 
   return 0;
@@ -488,9 +511,10 @@ function_pc_is_marked_for_skip (CORE_ADDR pc)
 
 /* Re-set the skip list after symbols have been re-loaded. */
 void
-skip_re_set ()
+skip_re_set (void)
 {
   struct skiplist_entry *e;
+
   ALL_SKIPLIST_ENTRIES (e)
     {
       if (e->filename != 0)
@@ -517,16 +541,16 @@ skip_re_set ()
 	  struct symtabs_and_lines sals;
 	  volatile struct gdb_exception decode_exception;
 
-	  TRY_CATCH(decode_exception, NOT_FOUND_ERROR)
+	  TRY_CATCH (decode_exception, NOT_FOUND_ERROR)
 	    {
 	      sals = decode_line_1 (&func_name, 1, 0, 0, 0);
 	    }
 
-	  if (decode_exception.reason >= 0 &&
-	      sals.nelts == 1 && strlen (func_name) == 0)
+	  if (decode_exception.reason >= 0
+              && sals.nelts == 1 && strlen (func_name) == 0)
 	    {
-	      struct symtab_and_line *sal = &sals.sals[0];
-	      CORE_ADDR pc = sal->pc;
+	      struct symtab_and_line sal = sals.sals[0];
+	      CORE_ADDR pc = sal.pc;
 	      CORE_ADDR func_start = 0;
 	      struct gdbarch *arch = get_sal_arch (sal);
               char *func_name;
@@ -534,7 +558,7 @@ skip_re_set ()
 	      if (find_pc_partial_function (pc, &func_name, &func_start, 0))
 		{
 		  e->pending = 0;
-                  e->function_name = xstrdup(func_name);
+                  e->function_name = xstrdup (func_name);
 		  e->pc = func_start;
 		  e->gdbarch = arch;
 		}
@@ -547,17 +571,6 @@ skip_re_set ()
     }
 }
 
-/* Helper function to get a gdbarch from a symtab_and_line. */
-static struct gdbarch*
-get_sal_arch (struct symtab_and_line *sal)
-{
-  if (sal->section)
-    return get_objfile_arch (sal->section->objfile);
-  if (sal->symtab)
-    return get_objfile_arch (sal->symtab->objfile);
-  return get_current_arch ();
-}
-
 void
 _initialize_step_skip (void)
 {
@@ -568,41 +581,42 @@ _initialize_step_skip (void)
 
   add_prefix_cmd ("skip", class_breakpoint, skip_function_command, _("\
 Ignore a function while stepping.\n\
-skip [FUNCTION NAME]\n\
+Usage: skip [FUNCTION NAME]\n\
 If no function name is given, ignore the current function."),
                   &skiplist, "skip ", 1, &cmdlist);
 
   c = add_cmd ("file", class_breakpoint, skip_file_command, _("\
 Ignore a file while stepping.\n\
-skip file [FILENAME]\n\
+Usage: skip file [FILENAME]\n\
 If no filename is given, ignore the current file."),
 	       &skiplist);
   set_cmd_completer (c, filename_completer);
 
   c = add_cmd ("function", class_breakpoint, skip_function_command, _("\
 Ignore a function while stepping.\n\
-skip function [FUNCTION NAME]\n\
+Usage: skip function [FUNCTION NAME]\n\
 If no function name is given, skip the current function."),
 	       &skiplist);
   set_cmd_completer (c, location_completer);
 
   add_cmd ("enable", class_breakpoint, skip_enable_command, _("\
 Enable a skip entry.\n\
-skip enable [NUMBER]"),
+Usage: skip enable [NUMBER]"),
 	   &skiplist);
 
   add_cmd ("disable", class_breakpoint, skip_disable_command, _("\
 Disable a skip entry.\n\
-skip disable [NUMBER]"),
+Usage: skip disable [NUMBER]"),
 	   &skiplist);
 
   add_cmd ("delete", class_breakpoint, skip_delete_command, _("\
 Delete a skip entry.\n\
-skip delete [NUMBER]"),
+Usage: skip delete [NUMBER]"),
            &skiplist);
 
   add_info ("skip", skip_info, _("\
 Status of all skips, or of skip NUMBER.\n\
+Usage: skip info [NUMBER]\n\
 The \"Type\" column indicates one of:\n\
 \tfile        - ignored file\n\
 \tfunction    - ignored function"));

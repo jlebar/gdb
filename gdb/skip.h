@@ -23,6 +23,6 @@
 int function_pc_is_marked_for_skip (CORE_ADDR pc);
 
 /* Re-set the skip list after symbols have been reloaded. */
-void skip_re_set ();
+void skip_re_set (void);
 
 #endif /* !defined (SKIP_H) */

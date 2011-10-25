@@ -896,8 +896,9 @@ print_frame_info (struct frame_info *frame, int print_level,
   gdb_flush (gdb_stdout);
 }
 
-/* Remember the last codepoint we displayed, which we use e.g. as the place to
-   put a breakpoint when the `break' command is invoked with no arguments. */
+/* Remember the last symtab and line we displayed, which we use e.g.
+ * as the place to put a breakpoint when the `break' command is
+ * invoked with no arguments.  */
 static void
 set_last_displayed_sal (int valid, struct program_space *pspace,
 			CORE_ADDR addr, struct symtab *symtab,
@@ -910,8 +911,9 @@ set_last_displayed_sal (int valid, struct program_space *pspace,
   last_displayed_line = line;
 }
 
+/* Forget the last sal we displayed.  */
 void
-clear_last_displayed_sal ()
+clear_last_displayed_sal (void)
 {
   last_displayed_sal_valid = 0;
   last_displayed_pspace = 0;
@@ -920,44 +922,52 @@ clear_last_displayed_sal ()
   last_displayed_line = 0;
 }
 
+/* Is our record of the last sal we displayed valid?  If not,
+ * the get_last_displayed_* functions will return NULL or 0, as
+ * appropriate.  */
 int
-last_displayed_sal_is_valid ()
+last_displayed_sal_is_valid (void)
 {
   return last_displayed_sal_valid;
 }
 
-struct program_space*
-get_last_displayed_pspace ()
+/* Get the pspace of the last sal we displayed, if it's valid.  */
+struct program_space *
+get_last_displayed_pspace (void)
 {
   if (last_displayed_sal_valid)
     return last_displayed_pspace;
   return 0;
 }
 
+/* Get the address of the last sal we displayed, if it's valid.  */
 CORE_ADDR
-get_last_displayed_addr ()
+get_last_displayed_addr (void)
 {
   if (last_displayed_sal_valid)
     return last_displayed_addr;
   return 0;
 }
 
+/* Get the symtab of the last sal we displayed, if it's valid.  */
 struct symtab*
-get_last_displayed_symtab ()
+get_last_displayed_symtab (void)
 {
   if (last_displayed_sal_valid)
     return last_displayed_symtab;
   return 0;
 }
 
+/* Get the line of the last sal we displayed, if it's valid.  */
 int
-get_last_displayed_line ()
+get_last_displayed_line (void)
 {
   if (last_displayed_sal_valid)
     return last_displayed_line;
   return 0;
 }
 
+/* Get the last sal we displayed, if it's valid.  */
 void
 get_last_displayed_sal (struct symtab_and_line *sal)
 {

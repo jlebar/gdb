@@ -5739,7 +5739,7 @@ set_breakpoint_location_function (struct bp_location *loc, int explicit_loc)
 }
 
 /* Attempt to determine architecture of location identified by SAL.  */
-static struct gdbarch *
+struct gdbarch *
 get_sal_arch (struct symtab_and_line sal)
 {
   if (sal.section)

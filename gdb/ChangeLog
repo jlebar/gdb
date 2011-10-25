@@ -5,9 +5,11 @@
 	(COMMON_OBS): Add skip.o.
 	* skip.h, skip.c: New.
 	* breakpoint.h (set_default_breakpoint): Remove.
+	(get_sal_arch): Declare.
 	* breakpoint.c: Remove default_breakpoint_valid,
 	default_breakpoint_address, default_breakpoint_symtab,
 	default_breakpoint_line, default_breakpoint_pspace variables.
+	(get_sal_arch): Make public.
 	(set_default_breakpoint): Remove.
 	(parse_breakpoint_sals, create_breakpoint, clear_command,
 	decode_line_spec_1): Remove uses of default_breakpoint variables;
