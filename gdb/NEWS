@@ -3,7 +3,7 @@
 
 *** Changes since GDB 7.3.1
 
-* GDB now allows you to skip over uninteresting functions and files when
+* GDB now allows you to skip uninteresting functions and files when
   stepping with the "skip function" and "skip file" commands.
 
 * GDB has two new commands: "set remote hardware-watchpoint-length-limit"

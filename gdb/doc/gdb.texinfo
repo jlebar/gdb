@@ -4856,11 +4856,11 @@ An argument is a repeat count, as in @code{next}.
 
 @node Skipping Over Functions and Files
 @subsection Skipping Over Functions and Files
-@cindex skip
+@cindex skipping over functions and files
 
 The program you are debugging may contain some functions which are
 uninteresting to debug.  The @code{skip} comand lets you tell @value{GDBN} to
-skip over a file or function when stepping.
+skip a function or all functions in a file when stepping.
 
 For example, consider the following C function:
 
@@ -4882,7 +4882,7 @@ One solution is to @code{step} into @code{boring} and use the @code{finish}
 command to immediately exit it.  But this can become tedious if @code{boring}
 is called from many places.
 
-A more flexible solution is to execute @code{skip boring}.  This instructs
+A more flexible solution is to execute @kbd{skip boring}.  This instructs
 @value{GDBN} never to step into @code{boring}.  Now when you execute
 @code{step} at line 103, you'll step over @code{boring} and directly into
 @code{foo}.
@@ -4891,13 +4891,12 @@ You can also instruct @value{GDBN} to skip all functions in a file, with, for
 example, @code{skip file boring.c}.
 
 @table @code
-@kindex skip
 @kindex skip function
 @item skip @r{[}@var{linespec}@r{]}
 @itemx skip function @r{[}@var{linespec}@r{]}
 After running this command, the function named by @var{linespec} or the
 function containing the line named by @var{linespec} will be skipped over when
-stepping.  (@pxref{Specify Location}) 
+stepping.  @xref{Specify Location}
 
 If you do not specify @var{linespec}, the function you're currently debugging
 will be skipped.
@@ -4925,14 +4924,15 @@ skipping.  @code{info skip} prints the following information:
 @item Identifier
 A number identifying this skip.
 @item Type
-@samp{function} or @samp{file}
+This field contains either @samp{function} or @samp{file}, indicating whether
+the skip is on one function or all the functions in a file.
 @item Enabled or Disabled
 Enabled skips are marked with @samp{y}.  Disabled skips are marked with @samp{n}.
 @item Address
 For function skips, this column indicates the address in memory of the function
 being skipped.  If you've set a function skip on a function which has not yet
 been loaded, this field will contain @samp{<PENDING>}.  Once a shared library
-which has the function is loaded, @code{info break} will show the function's
+which has the function is loaded, @code{info skip} will show the function's
 address here.
 @item What
 For file skips, this field contains the filename being skipped.  For functions
