@@ -26,6 +26,7 @@
 #include "command.h"
 #include "completer.h"
 #include "stack.h"
+#include "cli/cli-utils.h"
 #include "arch-utils.h"
 #include "linespec.h"
 #include "objfiles.h"
@@ -211,22 +212,16 @@ skip_info (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
   int num_printable_entries = 0;
-  int entry_num = -1;
   int address_width = 10;
   struct value_print_options opts;
   struct cleanup *tbl_chain;
 
   get_user_print_options (&opts);
 
-  if (arg != 0)
-    {
-      entry_num = parse_and_eval_long (arg);
-    }
-
   /* Count the number of rows in the table and see if we need space for a
      64-bit address anywhere. */
   ALL_SKIPLIST_ENTRIES (e)
-    if (entry_num == -1 || e->number == entry_num)
+    if (arg == 0 || number_is_in_list(arg, e->number))
       {
 	num_printable_entries++;
 	if (e->gdbarch && gdbarch_addr_bit (e->gdbarch) > 32)
@@ -235,12 +230,12 @@ skip_info (char *arg, int from_tty)
 
   if (num_printable_entries == 0)
     {
-      if (entry_num == -1)
+      if (arg == 0)
 	ui_out_message (current_uiout, 0, _("\
 Not skipping any files or functions.\n"));
       else
 	ui_out_message (current_uiout, 0,
-			_("No skiplist entry numbered %d.\n"), entry_num);
+			_("No skiplist entries found with number %s.\n"), arg);
 
       return;
     }
@@ -271,7 +266,7 @@ Not skipping any files or functions.\n"));
       struct cleanup *entry_chain;
 
       QUIT;
-      if (entry_num != -1 && entry_num != e->number)
+      if (arg != 0 && !number_is_in_list(arg, e->number))
 	continue;
 
       entry_chain = make_cleanup_ui_out_tuple_begin_end (current_uiout,
@@ -336,74 +331,45 @@ static void
 skip_enable_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
-  int entry_num;
+  int found = 0;
 
-  if (arg == 0)
-    {
-      ALL_SKIPLIST_ENTRIES (e)
-        e->enabled = 1;
-      return;
-    }
-
-  entry_num = parse_and_eval_long (arg);
   ALL_SKIPLIST_ENTRIES (e)
-    if (e->number == entry_num)
+    if (arg == 0 || number_is_in_list(arg, e->number))
       {
         e->enabled = 1;
-        return;
+        found = 1;
       }
 
-  error (_("No skiplist entry numbered %d."), entry_num);
+  if (!found)
+    error (_("No skiplist entries found with number %s."), arg);
 }
 
 static void
 skip_disable_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e;
-  int entry_num;
+  int found = 0;
 
-  if (arg == 0)
-    {
-      ALL_SKIPLIST_ENTRIES (e)
-        e->enabled = 0;
-      return;
-    }
-
-  entry_num = parse_and_eval_long (arg);
   ALL_SKIPLIST_ENTRIES (e)
-    if (e->number == entry_num)
+    if (arg == 0 || number_is_in_list(arg, e->number))
       {
 	e->enabled = 0;
-	return;
+        found = 1;
       }
 
-  error (_("No skiplist entry numbered %d."), entry_num);
+  if (!found)
+    error (_("No skiplist entries found with number %s."), arg);
 }
 
 static void
 skip_delete_command (char *arg, int from_tty)
 {
   struct skiplist_entry *e, *temp, *b_prev;
-  int entry_num;
+  int found = 0;
 
-  if (arg == 0)
-    {
-      ALL_SKIPLIST_ENTRIES_SAFE (e, temp)
-        {
-          xfree (e->function_name);
-          xfree (e->filename);
-          xfree (e);
-        }
-      skiplist_entry_chain = 0;
-      return;
-    }
-
-  /* We don't need to use a SAFE macro here since we return as soon as we
-     remove an element from the list. */
-  entry_num = parse_and_eval_long (arg);
   b_prev = 0;
-  ALL_SKIPLIST_ENTRIES (e)
-    if (e->number == entry_num)
+  ALL_SKIPLIST_ENTRIES_SAFE (e, temp)
+    if (arg == 0 || number_is_in_list(arg, e->number))
       {
 	if (b_prev != 0)
 	  b_prev->next = e->next;
@@ -413,14 +379,15 @@ skip_delete_command (char *arg, int from_tty)
 	xfree (e->function_name);
 	xfree (e->filename);
 	xfree (e);
-	return;
+        found = 1;
       }
     else
       {
 	b_prev = e;
       }
 
-  error (_("No skiplist entry numbered %d."), entry_num);
+  if (!found)
+    error (_("No skiplist entries found with number %s."), arg);
 }
 
 /* Create a skiplist entry for the given pc corresponding to the given
@@ -600,23 +567,31 @@ If no function name is given, skip the current function."),
   set_cmd_completer (c, location_completer);
 
   add_cmd ("enable", class_breakpoint, skip_enable_command, _("\
-Enable a skip entry.\n\
-Usage: skip enable [NUMBER]"),
+Enable skip entries.  You can specify numbers (e.g. \"skip enable 1 3\"), \
+ranges (e.g. \"skip enable 4-8\"), or both (e.g. \"skip enable 1 3 4-8\").\n\n\
+If you don't specify any numbers or ranges, we'll enable all skip entries.\n\n\
+Usage: skip enable [NUMBERS AND/OR RANGES]"),
 	   &skiplist);
 
   add_cmd ("disable", class_breakpoint, skip_disable_command, _("\
-Disable a skip entry.\n\
-Usage: skip disable [NUMBER]"),
+Disable skip entries.  You can specify numbers (e.g. \"skip disable 1 3\"), \
+ranges (e.g. \"skip disable 4-8\"), or both (e.g. \"skip disable 1 3 4-8\").\n\n\
+If you don't specify any numbers or ranges, we'll disable all skip entries.\n\n\
+Usage: skip disable [NUMBERS AND/OR RANGES]"),
 	   &skiplist);
 
   add_cmd ("delete", class_breakpoint, skip_delete_command, _("\
-Delete a skip entry.\n\
-Usage: skip delete [NUMBER]"),
+Delete skip entries.  You can specify numbers (e.g. \"skip delete 1 3\"), \
+ranges (e.g. \"skip delete 4-8\"), or both (e.g. \"skip delete 1 3 4-8\").\n\n\
+If you don't specify any numbers or ranges, we'll delete all skip entries.\n\n\
+Usage: skip delete [NUMBERS AND/OR RANGES]"),
            &skiplist);
 
   add_info ("skip", skip_info, _("\
-Status of all skips, or of skip NUMBER.\n\
-Usage: skip info [NUMBER]\n\
+Display the status of skips.  You can specify numbers (e.g. \"skip info 1 3\"), \
+ranges (e.g. \"skip info 4-8\"), or both (e.g. \"skip info 1 3 4-8\").\n\n\
+If you don't specify any numbers or ranges, we'll show all skips.\n\n\
+Usage: skip info [NUMBERS AND/OR RANGES]\n\
 The \"Type\" column indicates one of:\n\
 \tfile        - ignored file\n\
 \tfunction    - ignored function"));

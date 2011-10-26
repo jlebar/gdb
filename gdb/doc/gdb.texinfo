@@ -4901,6 +4901,9 @@ stepping.  @xref{Specify Location}
 If you do not specify @var{linespec}, the function you're currently debugging
 will be skipped.
 
+(If you have a function called @code{file} that you want to skip, use
+@kbd{skip function file}.)
+
 @kindex skip file
 @item skip file @r{[}@var{filename}@r{]}
 After running this command, any function whose source lives in @var{filename}
@@ -4915,17 +4918,16 @@ These are the commands for managing your list of skips:
 
 @table @code
 @kindex info skip
-@item info skip @r{[}@var{n}@r{]}
-Print details about the skip with identifier @var{n}.  If @var{n} is not
-specified, print a table with details about all functions and files marked for
-skipping.  @code{info skip} prints the following information:
+@item info skip @r{[}@var{range}@r{]}
+Print details about the specified skip(s).  If @var{range} is not specified,
+print a table with details about all functions and files marked for skipping.
+@code{info skip} prints the following information about each skip:
 
 @table @emph
 @item Identifier
 A number identifying this skip.
 @item Type
-This field contains either @samp{function} or @samp{file}, indicating whether
-the skip is on one function or all the functions in a file.
+The type of this skip, either @samp{function} or @samp{file}.
 @item Enabled or Disabled
 Enabled skips are marked with @samp{y}.  Disabled skips are marked with @samp{n}.
 @item Address
@@ -4941,19 +4943,19 @@ where it is defined.
 @end table
 
 @kindex skip delete
-@item skip delete @r{[}@var{n}@r{]}
-Delete the skip with identifier @var{n}.  If @var{n} is not specified, delete
-all skips.
+@item skip delete @r{[}@var{range}@r{]}
+Delete the specified skip(s).  If @var{range} is not specified, delete all
+skips.
 
 @kindex skip enable
-@item skip enable @r{[}@var{n}@r{]}
-Enable the skip with identifier @var{n}.  If @var{n} is not specified, enable
-all skips.
+@item skip enable @r{[}@var{range}@r{]}
+Enable the specified skip(s).  If @var{range} is not specified, enable all
+skips.
 
 @kindex skip disable
-@item skip disable @r{[}@var{n}@r{]}
-Disable the skip with identifier @var{n}.  If @var{n} is not specified, disable
-all skips.
+@item skip disable @r{[}@var{range}@r{]}
+Disable the specified skip(s).  If @var{range} is not specified, disable all
+skips.
 
 @end table
 
