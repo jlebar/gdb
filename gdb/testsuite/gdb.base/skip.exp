@@ -81,9 +81,8 @@ gdb_test "info skip" \
 # right over it and go to the second line of main().
 #
 
-# XXX This gdb_test sometimes fails, due to an apparent race.
 if ![runto_main] { fail "skip tests suppressed" }
-send_gdb "step\n"
+gdb_test "step"
 gdb_test "bt" "\\s*\\#0\\s+main.*" "step after all ignored"
 
 #
@@ -91,7 +90,7 @@ gdb_test "bt" "\\s*\\#0\\s+main.*" "step after all ignored"
 # into foo(), and our second step should take us to the next line in
 # main().
 #
-send_gdb "skip delete 1\n"
+gdb_test "skip delete 1"
 # Check that entry 1 is missing from |info skip|
 gdb_test "info skip" \
 "Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
@@ -101,38 +100,38 @@ gdb_test "info skip" \
 
 if ![runto_main] { fail "skip tests suppressed" }
 gdb_test "step" "foo \\(\\) at.*" "step after deleting 1 (1)"
-send_gdb "step\n"; # Return from foo()
+gdb_test "step"; # Return from foo()
 gdb_test "step" "main \\(\\) at.*" "step after deleting 1 (2)"
 
 #
 # Now disable the skiplist entry for  skip1.c.  We should now
 # step into foo(), then into bar(), but not into baz().
 #
-send_gdb "skip disable 3\n"
+gdb_test "skip disable 3"
 # Is entry 3 disabled in |info skip|?
 gdb_test "info skip 3" ".*\\n3\\s+file\\s+n.*" \
          "info skip shows entry as disabled"
 
 if ![runto_main] { fail "skip tests suppressed" }
 gdb_test "step" "bar \\(\\) at.*" "step after disabling 3 (1)"
-send_gdb "step\n"; # Return from foo()
+gdb_test "step"; # Return from foo()
 gdb_test "step" "foo \\(\\) at.*" "step after disabling 3 (2)"
-send_gdb "step\n"; # Return from bar()
+gdb_test "step"; # Return from bar()
 gdb_test "step" "main \\(\\) at.*" "step after disabling 3 (3)"
 
 #
 # Enable skiplist entry 3 and make sure we step over it like before.
 #
-send_gdb "skip enable 3\n"
+gdb_test "skip enable 3"
 # Is entry 3 enabled in |info skip|?
 gdb_test "info skip 3" ".*\\n3\\s+file\\s+y.*" \
          "info skip shows entry as enabled"
 if ![runto_main] { fail "skip tests suppressed" }
 gdb_test "step" "foo \\(\\) at.*" "step after deleting 1 (1)"
-send_gdb "step\n"; # Return from foo()
+gdb_test "step"; # Return from foo()
 gdb_test "step" "main \\(\\) at.*" "step after deleting 1 (2)"
 
-send_gdb "skip disable\n"
+gdb_test "skip disable"
 gdb_test "info skip" \
 "Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
 2\\s+function\\s+n\\s+0x\[0-9a-f\]+ main at .*$srcfile:\[0-9\]+\\s*
@@ -140,7 +139,7 @@ gdb_test "info skip" \
 4\\s+function\\s+n\\s+0x\[0-9a-f\]+ baz at .*$srcfile1:\[0-9\]+\\s*" \
 "info skip after disabling all"
 
-send_gdb "skip enable\n"
+gdb_test "skip enable"
 gdb_test "info skip" \
 "Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
 2\\s+function\\s+y\\s+0x\[0-9a-f\]+ main at .*$srcfile:\[0-9\]+\\s*
@@ -148,7 +147,7 @@ gdb_test "info skip" \
 4\\s+function\\s+y\\s+0x\[0-9a-f\]+ baz at .*$srcfile1:\[0-9\]+\\s*" \
 "info skip after enabling all"
 
-send_gdb "skip disable 4 2-3\n"
+gdb_test "skip disable 4 2-3"
 gdb_test "info skip" \
 "Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
 2\\s+function\\s+n\\s+0x\[0-9a-f\]+ main at .*$srcfile:\[0-9\]+\\s*
@@ -156,7 +155,7 @@ gdb_test "info skip" \
 4\\s+function\\s+n\\s+0x\[0-9a-f\]+ baz at .*$srcfile1:\[0-9\]+\\s*" \
 "info skip after disabling 4 2-3"
 
-send_gdb "skip enable 2-3\n"
+gdb_test "skip enable 2-3"
 gdb_test "info skip" \
 "Num\\s+Type\\s+Enb\\s+Address\\s+What\\s*
 2\\s+function\\s+y\\s+0x\[0-9a-f\]+ main at .*$srcfile:\[0-9\]+\\s*
@@ -170,11 +169,11 @@ gdb_test "info skip 2-3" \
 3\\s+file\\s+y\\s+.*$srcfile1\\s*" \
 "info skip 2-3"
 
-send_gdb "skip delete 2 3\n"
+gdb_test "skip delete 2 3"
 gdb_test "info skip" \
 "4\\s+function\\s+n\\s+0x\[0-9a-f\]+ baz at .*$srcfile1:\[0-9\]+\\s*" \
 "info skip after deleting 2 3"
 
-send_gdb "skip delete\n"
+gdb_test "skip delete"
 gdb_test "info skip" "Not skipping any files or functions\." \
 "info skip after deleting all"
