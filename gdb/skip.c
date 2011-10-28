@@ -452,9 +452,6 @@ function_pc_is_marked_for_skip (CORE_ADDR pc)
   char *filename = NULL;
   struct skiplist_entry *e;
 
-  sal = find_pc_line (pc, 0);
-  filename = sal.symtab->filename;
-
   ALL_SKIPLIST_ENTRIES (e)
     {
       if (!e->enabled || e->pending)
@@ -471,7 +468,8 @@ function_pc_is_marked_for_skip (CORE_ADDR pc)
 	  if (!searched_for_sal)
 	    {
 	      sal = find_pc_line (pc, 0);
-	      filename = sal.symtab->filename;
+              if (sal.symtab != 0)
+                filename = sal.symtab->filename;
 	      searched_for_sal = 1;
 	    }
 	  if (filename != 0 && strcmp (filename, e->filename) == 0)
