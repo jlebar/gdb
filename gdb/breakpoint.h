@@ -1363,7 +1363,6 @@ extern int pc_at_non_inline_function (struct address_space *aspace,
 extern int user_breakpoint_p (struct breakpoint *);
 
 /* Attempt to determine architecture of location identified by SAL.  */
-extern struct gdbarch *
-get_sal_arch (struct symtab_and_line sal);
+extern struct gdbarch *get_sal_arch (struct symtab_and_line sal);
 
 #endif /* !defined (BREAKPOINT_H) */

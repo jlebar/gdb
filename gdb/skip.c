@@ -31,7 +31,7 @@
 #include "linespec.h"
 #include "objfiles.h"
 #include "exceptions.h"
-#include "breakpoint.h" /* for get_sal_arch() */
+#include "breakpoint.h" /* for get_sal_arch () */
 
 struct skiplist_entry
 {
@@ -162,13 +162,16 @@ skip_function_command (char *arg, int from_tty)
       volatile struct gdb_exception decode_exception;
       struct symtabs_and_lines sals;
 
-      TRY_CATCH (decode_exception, NOT_FOUND_ERROR)
+      TRY_CATCH (decode_exception, RETURN_MASK_ERROR)
 	{
 	  sals = decode_line_1 (&arg, 1, 0, 0, 0);
 	}
 
       if (decode_exception.reason < 0)
         {
+          if (decode_exception.error != NOT_FOUND_ERROR)
+            throw_exception (decode_exception);
+
 	  fprintf_filtered (gdb_stderr,
 			    _("No function found named %s.\n"), orig_arg);
 
@@ -221,7 +224,7 @@ skip_info (char *arg, int from_tty)
   /* Count the number of rows in the table and see if we need space for a
      64-bit address anywhere. */
   ALL_SKIPLIST_ENTRIES (e)
-    if (arg == 0 || number_is_in_list(arg, e->number))
+    if (arg == 0 || number_is_in_list (arg, e->number))
       {
 	num_printable_entries++;
 	if (e->gdbarch && gdbarch_addr_bit (e->gdbarch) > 32)
@@ -266,7 +269,7 @@ Not skipping any files or functions.\n"));
       struct cleanup *entry_chain;
 
       QUIT;
-      if (arg != 0 && !number_is_in_list(arg, e->number))
+      if (arg != 0 && !number_is_in_list (arg, e->number))
 	continue;
 
       entry_chain = make_cleanup_ui_out_tuple_begin_end (current_uiout,
@@ -334,7 +337,7 @@ skip_enable_command (char *arg, int from_tty)
   int found = 0;
 
   ALL_SKIPLIST_ENTRIES (e)
-    if (arg == 0 || number_is_in_list(arg, e->number))
+    if (arg == 0 || number_is_in_list (arg, e->number))
       {
         e->enabled = 1;
         found = 1;
@@ -351,7 +354,7 @@ skip_disable_command (char *arg, int from_tty)
   int found = 0;
 
   ALL_SKIPLIST_ENTRIES (e)
-    if (arg == 0 || number_is_in_list(arg, e->number))
+    if (arg == 0 || number_is_in_list (arg, e->number))
       {
 	e->enabled = 0;
         found = 1;
@@ -369,7 +372,7 @@ skip_delete_command (char *arg, int from_tty)
 
   b_prev = 0;
   ALL_SKIPLIST_ENTRIES_SAFE (e, temp)
-    if (arg == 0 || number_is_in_list(arg, e->number))
+    if (arg == 0 || number_is_in_list (arg, e->number))
       {
 	if (b_prev != 0)
 	  b_prev->next = e->next;
@@ -392,6 +395,7 @@ skip_delete_command (char *arg, int from_tty)
 
 /* Create a skiplist entry for the given pc corresponding to the given
    function name and add it to the list. */
+
 static void
 skip_function_pc (CORE_ADDR pc, char *name, struct gdbarch *arch,
 		  int pending)
@@ -416,6 +420,7 @@ skip_function_pc (CORE_ADDR pc, char *name, struct gdbarch *arch,
 }
 
 /* Add the given skiplist entry to our list, and set the entry's number. */
+
 static void
 add_skiplist_entry (struct skiplist_entry *e)
 {
@@ -438,6 +443,7 @@ add_skiplist_entry (struct skiplist_entry *e)
 }
 
 /* Does the given pc correspond to the beginning of a skipped function? */
+
 int
 function_pc_is_marked_for_skip (CORE_ADDR pc)
 {
@@ -508,7 +514,7 @@ skip_re_set (void)
 	  struct symtabs_and_lines sals;
 	  volatile struct gdb_exception decode_exception;
 
-	  TRY_CATCH (decode_exception, NOT_FOUND_ERROR)
+	  TRY_CATCH (decode_exception, RETURN_MASK_ERROR)
 	    {
 	      sals = decode_line_1 (&func_name, 1, 0, 0, 0);
 	    }
