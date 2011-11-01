@@ -91,7 +91,7 @@ skip_file_command (char *arg, int from_tty)
   char *filename = 0;
 
   /* If no argument was given, try to default to the last
-     displayed codepoint. */
+     displayed codepoint.  */
   if (arg == 0)
     {
       symtab = get_last_displayed_symtab ();
@@ -135,7 +135,7 @@ skip_function_command (char *arg, int from_tty)
   CORE_ADDR func_pc;
   char *name = NULL;
 
-  /* Default to the current function if no argument is given. */
+  /* Default to the current function if no argument is given.  */
   if (arg == 0)
     {
       CORE_ADDR pc;
@@ -154,11 +154,11 @@ skip_function_command (char *arg, int from_tty)
     {
       /* Decode arg.  We set funfirstline=1 so decode_line_1 will give us the
 	 first line of the function specified, if it can, and so that we'll
-	 reject variable names and the like. */
+	 reject variable names and the like.  */
 
       int i;
       int pending = 0;
-      char *orig_arg = arg; /* decode_line_1 modifies the arg pointer. */
+      char *orig_arg = arg; /* decode_line_1 modifies the arg pointer.  */
       volatile struct gdb_exception decode_exception;
       struct symtabs_and_lines sals;
 
@@ -178,7 +178,7 @@ skip_function_command (char *arg, int from_tty)
 	  if (nquery (_("\
 Ignore function pending future shared library load? ")))
 	    {
-	      /* Add the pending skiplist entry. */
+	      /* Add the pending skiplist entry.  */
 	      skip_function_pc (0, orig_arg, 0, 1);
 	    }
 
@@ -192,7 +192,7 @@ Ignore function pending future shared library load? ")))
 
       /* The pc decode_line_1 gives us is the first line of the function,
 	 but we actually want the line before that.  The call to
-	 find_pc_partial_function gets us the value we actually want. */
+	 find_pc_partial_function gets us the value we actually want.  */
       {
 	struct symtab_and_line sal = sals.sals[0];
 	CORE_ADDR pc = sal.pc;
@@ -222,7 +222,7 @@ skip_info (char *arg, int from_tty)
   get_user_print_options (&opts);
 
   /* Count the number of rows in the table and see if we need space for a
-     64-bit address anywhere. */
+     64-bit address anywhere.  */
   ALL_SKIPLIST_ENTRIES (e)
     if (arg == 0 || number_is_in_list (arg, e->number))
       {
@@ -394,7 +394,7 @@ skip_delete_command (char *arg, int from_tty)
 }
 
 /* Create a skiplist entry for the given pc corresponding to the given
-   function name and add it to the list. */
+   function name and add it to the list.  */
 
 static void
 skip_function_pc (CORE_ADDR pc, char *name, struct gdbarch *arch,
@@ -419,7 +419,7 @@ skip_function_pc (CORE_ADDR pc, char *name, struct gdbarch *arch,
 		     name);
 }
 
-/* Add the given skiplist entry to our list, and set the entry's number. */
+/* Add the given skiplist entry to our list, and set the entry's number.  */
 
 static void
 add_skiplist_entry (struct skiplist_entry *e)
@@ -429,7 +429,7 @@ add_skiplist_entry (struct skiplist_entry *e)
   e->number = ++skiplist_entry_count;
 
   /* Add to the end of the chain so that the list of
-     skiplist entries will be in numerical order. */
+     skiplist entries will be in numerical order.  */
 
   e1 = skiplist_entry_chain;
   if (e1 == 0)
@@ -464,7 +464,7 @@ function_pc_is_marked_for_skip (CORE_ADDR pc)
       if (e->filename != 0)
 	{
 	  /* Get the filename corresponding to this pc, if we haven't
-	   * yet. */
+	   * yet.  */
 	  if (!searched_for_sal)
 	    {
 	      sal = find_pc_line (pc, 0);
@@ -480,7 +480,7 @@ function_pc_is_marked_for_skip (CORE_ADDR pc)
   return 0;
 }
 
-/* Re-set the skip list after symbols have been re-loaded. */
+/* Re-set the skip list after symbols have been re-loaded.  */
 void
 skip_re_set (void)
 {
@@ -492,7 +492,7 @@ skip_re_set (void)
 	{
 	  /* If it's an entry telling us to skip a file, but the entry is
 	     currently pending a solib load, let's see if we now know
-	     about the file. */
+	     about the file.  */
 	  struct symtab *symtab = lookup_symtab (e->filename);
 	  if (symtab != 0)
 	    {

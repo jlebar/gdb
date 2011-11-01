@@ -19,10 +19,10 @@
 #define SKIP_H
 
 /* Returns 1 if the given pc is marked for skip and shouldn't be
-   stepped into.  Otherwise, returns 0. */
+   stepped into.  Otherwise, returns 0.  */
 int function_pc_is_marked_for_skip (CORE_ADDR pc);
 
-/* Re-set the skip list after symbols have been reloaded. */
+/* Re-set the skip list after symbols have been reloaded.  */
 void skip_re_set (void);
 
 #endif /* !defined (SKIP_H) */

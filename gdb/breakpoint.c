@@ -7519,7 +7519,7 @@ parse_breakpoint_sals (char **address,
       || (strncmp ((*address), "if", 2) == 0 && isspace ((*address)[2])))
     {
       /* The last displayed codepoint, if it's valid, is our default breakpoint
-         address. */
+         address.  */
       if (last_displayed_sal_is_valid ())
 	{
 	  struct symtab_and_line sal;
@@ -7529,7 +7529,7 @@ parse_breakpoint_sals (char **address,
 	    xmalloc (sizeof (struct symtab_and_line));
 
 	  /* Set sal's pspace, pc, symtab, and line to the values
-	     corresponding to the last call to print_frame_info. */
+	     corresponding to the last call to print_frame_info.  */
 	  get_last_displayed_sal (&sal);
           sal.section = find_pc_overlay (sal.pc);
 
@@ -10120,7 +10120,7 @@ clear_command (char *arg, int from_tty)
 
       /* Set sal's line, symtab, pc, and pspace to the values
 	 corresponding to the last call to print_frame_info.  If the
-	 codepoint is not valid, this will set all the fields to 0. */
+	 codepoint is not valid, this will set all the fields to 0.  */
       get_last_displayed_sal (&sal);
       if (sal.symtab == 0)
 	error (_("No source file specified."));
@@ -11970,7 +11970,7 @@ breakpoint_re_set (void)
   create_std_terminate_master_breakpoint ();
   create_exception_master_breakpoint ();
 
-  /* While we're at it, reset the skip list too. */
+  /* While we're at it, reset the skip list too.  */
   skip_re_set ();
 }
 
@@ -12422,7 +12422,7 @@ invalidate_bp_value_on_memory_change (CORE_ADDR addr, int len,
 }
 
 /* Use the last displayed codepoint's values, or nothing
-   if they aren't valid. */
+   if they aren't valid.  */
 
 struct symtabs_and_lines
 decode_line_spec_1 (char *string, int funfirstline)

@@ -111,7 +111,7 @@ static void set_last_displayed_sal (int valid,
 int annotation_level = 0;
 
 /* These variables hold the last symtab and line we displayed to the user.
- * This is where we insert a breakpoint or a skiplist entry by default. */
+ * This is where we insert a breakpoint or a skiplist entry by default.  */
 static int last_displayed_sal_valid = 0;
 static struct program_space *last_displayed_pspace = 0;
 static CORE_ADDR last_displayed_addr = 0;
